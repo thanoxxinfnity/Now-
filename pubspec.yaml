@@ -45,7 +45,6 @@ dependencies:
   archive: ^4.7.1
   share_plus: ^13.3.1
   url_launcher: ^6.3.3
-  permission_handler: ^13.0.2
   uuid: ^4.6.0
   markdown: ^7.3.1
 

@@ -29,17 +29,17 @@ class SettingsScreen extends StatelessWidget {
         _GithubCard(app: app),
         const Caption('Behaviour'),
         MCard(child: Column(children: [
-          _switch('Background work', 'App kill karne par bhi chat aur build chalta rahe', s.backgroundMode, (v) {
+          _switch('Background work', 'Keep chats and builds running even after the app is closed', s.backgroundMode, (v) {
             s.backgroundMode = v;
             app.saveSettings();
           }),
           const Divider(color: Tk.border, height: 20),
-          _switch('Auto-fix failed builds', 'Build fail ho to AI log padh ke khud fix karke dobara push kare (max 3)', s.autoFix, (v) {
+          _switch('Auto-fix failed builds', 'If a build fails, the AI reads the log, fixes the code and pushes again (max 3 tries)', s.autoFix, (v) {
             s.autoFix = v;
             app.saveSettings();
           }),
           const Divider(color: Tk.border, height: 20),
-          _switch('Live research by default', 'Har sawal ke liye web search on', s.research, (v) {
+          _switch('Live research by default', 'Search the web for every question', s.research, (v) {
             s.research = v;
             app.saveSettings();
           }),
@@ -84,7 +84,7 @@ class SettingsScreen extends StatelessWidget {
         backgroundColor: Tk.card,
         title: Text('Custom endpoint', style: ts(17, w: 600)),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('Koi bhi OpenAI-compatible API (Ollama, LM Studio, Groq, Together, vLLM...)', style: ts(12.5, color: Tk.faint)),
+          Text('Any OpenAI-compatible API (Ollama, LM Studio, Groq, Together, vLLM...)', style: ts(12.5, color: Tk.faint)),
           const SizedBox(height: 12),
           TextField(controller: name, style: ts(14), decoration: const InputDecoration(labelText: 'Name')),
           TextField(controller: url, style: ts(14), decoration: const InputDecoration(labelText: 'Base URL (…/v1)')),
@@ -190,6 +190,13 @@ class _ProviderCard extends StatelessWidget {
             p.apiKey = v.trim();
             app.saveSettings();
           }),
+          if (p.kind == ProviderKind.custom) ...[
+            const SizedBox(height: 8),
+            _Field(label: 'Name', initial: p.name, onChanged: (v) {
+              p.name = v;
+              app.saveSettings();
+            }),
+          ],
           if (p.kind == ProviderKind.custom || p.kind == ProviderKind.nvidia) ...[
             const SizedBox(height: 8),
             _Field(label: 'Base URL', initial: p.baseUrl, onChanged: (v) {
@@ -227,7 +234,7 @@ class _GithubCardState extends State<_GithubCard> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('Personal access token', style: ts(14.5, w: 600)),
         const SizedBox(height: 4),
-        Text('github.com/settings/tokens - classic token, scopes: repo + workflow. Mugen isse repo banata, code push karta aur Actions se APK build karta hai.', style: ts(12.5, color: Tk.faint, h: 1.4)),
+        Text('github.com/settings/tokens - classic token, scopes: repo + workflow. Mugen uses it to create a repo, push the code and build the APK with GitHub Actions.', style: ts(12.5, color: Tk.faint, h: 1.4)),
         const SizedBox(height: 10),
         _Field(label: 'ghp_… / github_pat_…', initial: s.ghToken, obscure: true, onChanged: (v) {
           s.ghToken = v.trim();
@@ -252,7 +259,7 @@ class _GithubCardState extends State<_GithubCard> {
         Row(children: [
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Public repositories', style: ts(14.5, w: 500)),
-            Text('Public ho to APK link kisi ko bhi chalta hai (private repo me link login maangta hai)', style: ts(12.5, color: Tk.faint)),
+            Text('Public repos give an APK link anyone can open (private repos need a GitHub login)', style: ts(12.5, color: Tk.faint)),
           ])),
           Switch(value: s.publicRepo, onChanged: (v) {
             s.publicRepo = v;

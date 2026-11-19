@@ -18,8 +18,8 @@ Map<String, String> _headers(ProviderConfig p) => {
 
 String _trimSlash(String s) => s.endsWith('/') ? s.substring(0, s.length - 1) : s;
 
-/// Fetches the live model list of a provider. New model names (Gemini ships
-/// new codenames all the time) show up automatically because nothing is hard-coded.
+/// Fetches the live model list of a provider. New model names show up
+/// automatically because nothing is hard-coded.
 Future<List<ModelInfo>> fetchModels(ProviderConfig p) async {
   final base = _trimSlash(p.baseUrl);
   switch (p.kind) {
@@ -40,7 +40,7 @@ Future<List<ModelInfo>> fetchModels(ProviderConfig p) async {
           if (low.contains('tts') || low.contains('embedding') || low.contains('imagen') || low.contains('veo') || low.contains('aqa')) continue;
           out.add(ModelInfo(
             id: id, name: (m['displayName'] ?? id).toString(), providerId: p.id,
-            autoFree: !_geminiPaid(low), context: m['inputTokenLimit'],
+            context: m['inputTokenLimit'],
           ));
         }
         token = j['nextPageToken'] as String?;
@@ -51,12 +51,9 @@ Future<List<ModelInfo>> fetchModels(ProviderConfig p) async {
       if (r.statusCode != 200) throw ApiError(_errText(r));
       final j = jsonDecode(r.body) as Map<String, dynamic>;
       return (j['data'] as List).map((m) {
-        final pr = m['pricing'] as Map? ?? {};
-        final free = m['id'].toString().endsWith(':free') ||
-            (_zero(pr['prompt']) && _zero(pr['completion']));
         return ModelInfo(
             id: m['id'], name: (m['name'] ?? m['id']).toString(), providerId: p.id,
-            autoFree: free, context: (m['context_length'] as num?)?.toInt());
+            context: (m['context_length'] as num?)?.toInt());
       }).toList();
     case ProviderKind.nvidia:
     case ProviderKind.custom:
@@ -66,16 +63,10 @@ Future<List<ModelInfo>> fetchModels(ProviderConfig p) async {
       final skip = RegExp(r'embed|rerank|reward|guard|clip|nv-embed|parse|whisper|tts|asr|vision-encoder', caseSensitive: false);
       return (j['data'] as List)
           .where((m) => p.kind == ProviderKind.custom || !skip.hasMatch(m['id'].toString()))
-          .map((m) => ModelInfo(id: m['id'], name: m['id'].toString(), providerId: p.id, autoFree: true))
+          .map((m) => ModelInfo(id: m['id'], name: m['id'].toString(), providerId: p.id))
           .toList();
   }
 }
-
-bool _zero(dynamic v) => v != null && (double.tryParse(v.toString()) ?? 1) == 0;
-
-/// Gemini: "pro" tier models are paid; flash / lite / gemma / new codenames start as free.
-/// The user can flip any model by hand in the picker.
-bool _geminiPaid(String id) => id.contains('-pro') || id.contains('ultra') || id.contains('deep-research');
 
 String _errText(http.Response r) {
   try {

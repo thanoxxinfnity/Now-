@@ -43,7 +43,7 @@ class _CliHubState extends State<CliHubScreen> {
       final j = jsonDecode(r.body);
       items = (j['clis'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
     } catch (e) {
-      err = 'Registry load nahi hui: $e';
+      err = 'Could not load the registry: $e';
     }
     if (mounted) setState(() => loading = false);
   }
@@ -126,8 +126,8 @@ class _CliCard extends StatelessWidget {
               final app = AppScope.read(context);
               app.newChat();
               Navigator.pop(context);
-              final ok = await app.send('${cli['display_name'] ?? cli['name']} CLI (${cli['install_cmd']}) ko kaise use karte hain? Practical examples do.');
-              if (!ok && context.mounted) toast(context, 'Pehle model choose karo', error: true);
+              final ok = await app.send('${cli['display_name'] ?? cli['name']} CLI (${cli['install_cmd']}) - how do I use it? Give practical examples.');
+              if (!ok && context.mounted) toast(context, 'Choose a model first', error: true);
             }),
           ]),
         ]),
@@ -153,7 +153,7 @@ class _RunSheetState extends State<_RunSheet> {
     final app = AppScope.read(context);
     final tok = app.settings.ghToken.trim();
     if (tok.isEmpty) {
-      toast(context, 'Settings me GitHub token daalo', error: true);
+      toast(context, 'Add your GitHub token in Settings', error: true);
       return;
     }
     setState(() {
@@ -182,7 +182,7 @@ class _RunSheetState extends State<_RunSheet> {
         final runs = await gh.listRuns(owner, 'mugen-cli-runner');
         if (runs.isNotEmpty && (runs.first['id'] as int) != lastId) run = Map<String, dynamic>.from(runs.first);
       }
-      if (run == null) throw 'Run start nahi hua';
+      if (run == null) throw 'The run did not start';
       while (run!['status'] != 'completed') {
         if (!mounted) return;
         setState(() => stage = 'Running on GitHub (${run!['status']})...');
@@ -207,7 +207,7 @@ class _RunSheetState extends State<_RunSheet> {
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Run ${widget.cli['display_name'] ?? widget.cli['name']}', style: ts(18, w: 600)),
           const SizedBox(height: 4),
-          Text('GitHub Actions runner par install hoga aur command chalega.', style: ts(12.5, color: Tk.faint)),
+          Text('It is installed on a GitHub Actions runner and the command runs there.', style: ts(12.5, color: Tk.faint)),
           const SizedBox(height: 12),
           TextField(
             controller: cmd,

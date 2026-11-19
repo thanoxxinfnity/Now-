@@ -50,15 +50,14 @@ class ModelInfo {
   final String id; // id sent to the API
   final String name;
   final String providerId;
-  final bool autoFree; // what we detected
   final int? context;
-  ModelInfo({required this.id, required this.name, required this.providerId, required this.autoFree, this.context});
+  ModelInfo({required this.id, required this.name, required this.providerId, this.context});
 
   String get key => '$providerId::$id';
 
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'p': providerId, 'free': autoFree, 'ctx': context};
-  factory ModelInfo.fromJson(Map<String, dynamic> j) => ModelInfo(
-      id: j['id'], name: j['name'], providerId: j['p'], autoFree: j['free'] ?? true, context: j['ctx']);
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'p': providerId, 'ctx': context};
+  factory ModelInfo.fromJson(Map<String, dynamic> j) =>
+      ModelInfo(id: j['id'], name: j['name'], providerId: j['p'], context: j['ctx']);
 }
 
 class GenFile {

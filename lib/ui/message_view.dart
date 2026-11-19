@@ -10,6 +10,7 @@ import '../parser.dart';
 import '../theme.dart';
 import 'project_card.dart';
 import 'scope.dart';
+import 'techniques.dart';
 import 'widgets.dart';
 
 class _CodeBuilder extends MarkdownElementBuilder {
@@ -90,7 +91,7 @@ class MessageView extends StatelessWidget {
             ? Row(mainAxisSize: MainAxisSize.min, children: [
                 const Icon(Icons.build_circle_outlined, size: 16, color: Tk.warn),
                 const SizedBox(width: 8),
-                Text('Build log bheja, Mugen fix kar raha hai', style: ts(13.5, color: Tk.dim)),
+                Text('Build log sent - Mugen is fixing it', style: ts(13.5, color: Tk.dim)),
               ])
             : SelectableText(msg.text, style: ts(15, h: 1.45)),
       ),
@@ -116,7 +117,8 @@ class MessageView extends StatelessWidget {
           ],
         ]),
         const SizedBox(height: 6),
-        if (waiting)
+        if (waiting) ...[
+          const TechniqueStage(height: 120),
           Padding(
             padding: const EdgeInsets.only(left: 4, top: 4),
             child: Row(children: [
@@ -124,6 +126,7 @@ class MessageView extends StatelessWidget {
               if (status != null) ...[const SizedBox(width: 10), Text(status!, style: ts(13, color: Tk.faint))],
             ]),
           ),
+        ],
         if (parsed.before.trim().isNotEmpty) _md(parsed.before),
         if (parsed.project != null) Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: ProjectCard(block: parsed.project!, latest: latestProject)),
         if (parsed.after.trim().isNotEmpty) _md(parsed.after),

@@ -54,7 +54,6 @@ class SettingsStore {
 
   List<ProviderConfig> providers = ProviderConfig.defaults();
   Map<String, List<ModelInfo>> models = {};
-  Map<String, bool> paidOverride = {}; // model key -> isPaid (user decision)
   String ghToken = '';
   String ghLogin = '';
   bool publicRepo = true;
@@ -81,8 +80,6 @@ class SettingsStore {
       final j = Map<String, dynamic>.from(jsonDecode(m));
       models = j.map((k, v) => MapEntry(k, (v as List).map((e) => ModelInfo.fromJson(Map<String, dynamic>.from(e))).toList()));
     }
-    final po = prefs.getString('paid');
-    if (po != null) paidOverride = Map<String, bool>.from(jsonDecode(po));
     ghLogin = prefs.getString('gh_login') ?? '';
     publicRepo = prefs.getBool('public_repo') ?? true;
     autoFix = prefs.getBool('auto_fix') ?? true;
@@ -102,7 +99,6 @@ class SettingsStore {
     final pj = providers.map((p) => (p.toJson()..['apiKey'] = '')).toList();
     await prefs.setString('providers', jsonEncode(pj));
     await prefs.setString('models', jsonEncode(models.map((k, v) => MapEntry(k, v.map((e) => e.toJson()).toList()))));
-    await prefs.setString('paid', jsonEncode(paidOverride));
     await prefs.setString('gh_login', ghLogin);
     await prefs.setBool('public_repo', publicRepo);
     await prefs.setBool('auto_fix', autoFix);
@@ -114,5 +110,4 @@ class SettingsStore {
     if (selModel != null) await prefs.setString('sel_m', selModel!);
   }
 
-  bool isPaid(ModelInfo m) => paidOverride[m.key] ?? !m.autoFree;
 }

@@ -2,9 +2,10 @@
 
 Chat, research and **build real Android apps from your phone**. Mugen is a Flutter app:
 
-- **Providers** - NVIDIA NIM, Google Gemini, OpenRouter, plus any OpenAI-compatible custom endpoint. Models are fetched live (new Gemini codenames appear on their own) and split into **Free** and **Paid**; tick any model as paid/free yourself.
+- **Providers** - NVIDIA NIM, Google Gemini, OpenRouter, plus any OpenAI-compatible custom endpoint. Models are fetched live (new model names appear on their own), every model is selectable, and you can also type any model ID by hand. Add as many custom endpoints as you like.
 - **Chat vs. build** - normal conversation stays conversation. Ask for an app and Mugen announces it, lists what it understood, streams the code into copy-boxes, and can export a `.zip`.
 - **GitHub Actions APK builds** - with your GitHub token Mugen creates a repo, pushes the code, watches the Actions run, and hands you the APK download link. A failed build is read back by the AI and fixed automatically (up to 3 tries).
+- **Cursed-technique animations** - blue / red / hollow purple and dismantle / cleave / shrine style effects on the home screen, while the AI is thinking and when an APK build succeeds.
 - **Live research** - toggle the globe in the composer to ground answers in fresh web results with sources.
 - **Background work** - jobs run in a foreground service isolate, so chats and builds keep going after you swipe the app away; history is stored on disk.
 - **Mugen CLI hub** - browse the [CLI-Anything](https://github.com/HKUDS/CLI-Anything) registry and run any CLI on a GitHub Actions runner from your phone.

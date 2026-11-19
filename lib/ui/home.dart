@@ -9,6 +9,7 @@ import 'message_view.dart';
 import 'model_picker.dart';
 import 'scope.dart';
 import 'settings.dart';
+import 'techniques.dart';
 import 'widgets.dart';
 
 Route<T> fadeRoute<T>(Widget w) => PageRouteBuilder<T>(
@@ -58,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final ok = await app.send(t);
     if (!ok) {
       if (!mounted) return;
-      toast(context, 'Pehle ek model chuno (Settings me API key daalo).');
+      toast(context, 'Choose a model first (add an API key in Settings).');
       showModelPicker(context);
       return;
     }
@@ -96,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(child: chat == null ? _empty() : _list(app, chat, running)),
             _Composer(controller: _ctrl, running: running, onSend: _send),
           ]),
-          Positioned.fill(child: BurstOverlay(trigger: app.successTick)),
+          Positioned.fill(child: TechniqueOverlay(trigger: app.successTick)),
         ]),
       ),
     );
@@ -121,10 +122,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _empty() {
     const sugg = [
-      'Ek todo app bana do, dark theme aur smooth animations ke saath',
-      'Calculator app banao jo premium lage',
-      'Aaj ki latest AI news research karke batao',
-      'Flutter me state management samjhao',
+      'Build me a todo app with a dark theme and smooth animations',
+      'Make a premium-looking calculator app',
+      "Research today's latest AI news for me",
+      'Explain state management in Flutter',
     ];
     return LayoutBuilder(
       builder: (_, c) => SingleChildScrollView(
@@ -132,11 +133,11 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: c.maxHeight),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            const MugenOrb(size: 120, active: false).animate().fadeIn(duration: 700.ms).scale(begin: const Offset(0.6, 0.6), curve: Curves.easeOutBack, duration: 800.ms),
-            const SizedBox(height: 18),
+            const TechniqueStage(height: 260).animate().fadeIn(duration: 700.ms).scale(begin: const Offset(0.7, 0.7), curve: Curves.easeOutBack, duration: 800.ms),
+            const SizedBox(height: 10),
             Text('Mugen', style: ts(34, w: 650)).animate().fadeIn(delay: 200.ms, duration: 500.ms).slideY(begin: 0.2),
             const SizedBox(height: 6),
-            Text('Baat karo, ya bolo "app bana do" - APK tayyar.', textAlign: TextAlign.center, style: ts(15, color: Tk.dim))
+            Text('Chat with me, or say "build an app" and get an APK.', textAlign: TextAlign.center, style: ts(15, color: Tk.dim))
                 .animate()
                 .fadeIn(delay: 350.ms, duration: 500.ms),
             const SizedBox(height: 28),
@@ -224,7 +225,7 @@ class _ComposerState extends State<_Composer> {
           style: ts(15.5),
           cursorColor: Tk.accent,
           decoration: InputDecoration(
-            hintText: 'Kuch bhi pucho ya app banwao...',
+            hintText: 'Ask anything or build an app...',
             hintStyle: ts(15.5, color: Tk.faint),
             border: InputBorder.none,
             filled: false,
@@ -365,7 +366,7 @@ class _HistoryDrawerState extends State<_HistoryDrawer> {
           ),
           Expanded(
             child: items.isEmpty
-                ? Center(child: Text('Koi history nahi', style: ts(14, color: Tk.faint)))
+                ? Center(child: Text('No history yet', style: ts(14, color: Tk.faint)))
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     itemCount: items.length,

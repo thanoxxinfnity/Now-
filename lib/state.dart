@@ -141,6 +141,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     for (final m in list) {
       if (m.id == settings.selModel) return m;
     }
+    // a model typed in by hand is not in the fetched list
+    if (settings.selModel != null && settings.selProvider != null) {
+      return ModelInfo(id: settings.selModel!, name: settings.selModel!, providerId: settings.selProvider!);
+    }
     return null;
   }
 
@@ -166,12 +170,6 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       fetching[p.id] = false;
       notifyListeners();
     }
-  }
-
-  Future<void> setPaid(ModelInfo m, bool paid) async {
-    settings.paidOverride[m.key] = paid;
-    await settings.save();
-    notifyListeners();
   }
 
   Future<void> saveSettings() async {
@@ -245,7 +243,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final c = current;
     if (c == null || c.project == null) return;
     if (settings.ghToken.trim().isEmpty) {
-      error = 'Settings me GitHub token daalo pehle.';
+      error = 'Add your GitHub token in Settings first.';
       notifyListeners();
       return;
     }

@@ -185,7 +185,7 @@ class _BuildTimeline extends StatelessWidget {
         if (active)
           Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: Text('Background me chalta rahega - app band karo tab bhi.', style: ts(12, color: Tk.faint)),
+            child: Text('Keeps running in the background, even if you close the app.', style: ts(12, color: Tk.faint)),
           ),
         if (pr.status == 'success' && pr.apkUrl != null) ...[
           const SizedBox(height: 8),

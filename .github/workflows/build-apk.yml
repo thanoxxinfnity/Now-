@@ -1,0 +1,84 @@
+name: Build Mugen APK
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+      - run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mugen-ai-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+      - name: Publish release (download link)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk MugenAI.apk
+          gh release create "mugen-${{ github.run_number }}" MugenAI.apk \
+            --title "Mugen AI build ${{ github.run_number }}" \
+            --notes "Debug-signed release APK. Install and enjoy." --latest
+
+  # Proves the workflow Mugen pushes for *generated* apps really produces an APK.
+  template-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Create sample generated project
+        run: |
+          mkdir -p /tmp/sample/lib && cd /tmp/sample
+          cat > pubspec.yaml <<'EOF'
+          name: sample_app
+          description: sample
+          version: 1.0.0+1
+          environment:
+            sdk: ">=3.4.0 <4.0.0"
+          dependencies:
+            flutter:
+              sdk: flutter
+          flutter:
+            uses-material-design: true
+          EOF
+          cat > lib/main.dart <<'EOF'
+          import 'package:flutter/material.dart';
+          void main() => runApp(const MaterialApp(home: Scaffold(body: Center(child: Text('hi')))));
+          EOF
+      - name: Run the same scaffold step as generated workflows
+        run: |
+          dart run tool/scaffold.dart scaffold sample_app "Sample App" | tail -n +1 > /tmp/scaffold.sh
+          cd /tmp/sample && bash /tmp/scaffold.sh
+      - name: Build sample APK
+        working-directory: /tmp/sample
+        run: |
+          flutter pub get
+          flutter build apk --release
+          ls -la build/app/outputs/flutter-apk/

@@ -80,46 +80,69 @@ String _errText(http.Response r) {
   return '${r.statusCode}: $b';
 }
 
+/// Some models reject system messages, max_tokens or temperature. Fold system
+/// prompts into the first user message for the retry.
+List<Map<String, String>> _foldSystem(List<Map<String, String>> msgs) {
+  final sys = msgs.where((m) => m['role'] == 'system').map((m) => m['content']!).join('\n\n');
+  final rest = msgs.where((m) => m['role'] != 'system').toList();
+  if (sys.isEmpty) return rest;
+  if (rest.isEmpty) return [{'role': 'user', 'content': sys}];
+  final first = Map<String, String>.from(rest.first);
+  first['content'] = 'Instructions:\n$sys\n\n${first['content']}';
+  return [first, ...rest.skip(1)];
+}
+
 /// OpenAI-compatible streaming chat completion. NVIDIA NIM, Gemini (openai
-/// compat endpoint), OpenRouter and custom endpoints all speak this.
+/// compat endpoint), OpenRouter and custom endpoints all speak this. If the
+/// first attempt is rejected (400/422) it retries with the plainest request.
 Stream<String> streamChat({
   required ProviderConfig provider,
   required String model,
   required List<Map<String, String>> messages,
   double temperature = 0.7,
 }) async* {
-  final client = http.Client();
-  try {
-    final req = http.Request('POST', Uri.parse('${_trimSlash(provider.baseUrl)}/chat/completions'));
-    req.headers.addAll(_headers(provider));
-    req.body = jsonEncode({
-      'model': model,
-      'messages': messages,
-      'stream': true,
-      'temperature': temperature,
-      'max_tokens': 16000,
-    });
-    final res = await client.send(req).timeout(const Duration(seconds: 60));
-    if (res.statusCode != 200) {
-      final body = await res.stream.bytesToString();
-      throw ApiError(_errText(http.Response(body, res.statusCode)));
+  for (var attempt = 0; attempt < 3; attempt++) {
+    final client = http.Client();
+    try {
+      final req = http.Request('POST', Uri.parse('${_trimSlash(provider.baseUrl)}/chat/completions'));
+      req.headers.addAll(_headers(provider));
+      req.body = jsonEncode({
+        'model': model,
+        'messages': attempt == 0 ? messages : _foldSystem(messages),
+        'stream': true,
+        if (attempt == 0) 'temperature': temperature,
+        if (attempt < 2) 'max_tokens': attempt == 0 ? 16000 : 4096,
+      });
+      final res = await client.send(req).timeout(const Duration(seconds: 90));
+      if (res.statusCode != 200) {
+        final body = await res.stream.bytesToString();
+        if ((res.statusCode == 400 || res.statusCode == 422) && attempt < 2) continue;
+        throw ApiError('${provider.name} / $model - ${_errText(http.Response(body, res.statusCode))}');
+      }
+      var got = false;
+      final lines = res.stream.transform(utf8.decoder).transform(const LineSplitter());
+      await for (final line in lines) {
+        if (!line.startsWith('data:')) continue;
+        final d = line.substring(5).trim();
+        if (d.isEmpty) continue;
+        if (d == '[DONE]') break;
+        try {
+          final j = jsonDecode(d);
+          final ch = (j['choices'] as List?)?.firstOrNull;
+          final c = ch?['delta']?['content'];
+          if (c is String && c.isNotEmpty) {
+            got = true;
+            yield c;
+          }
+        } catch (_) {/* partial / keep-alive */}
+      }
+      if (!got) throw ApiError('${provider.name} / $model returned an empty answer. Try another model.');
+      return;
+    } on TimeoutException {
+      if (attempt >= 2) throw ApiError('${provider.name} did not answer in time. Check your connection or try another model.');
+    } finally {
+      client.close();
     }
-    final lines = res.stream.transform(utf8.decoder).transform(const LineSplitter());
-    await for (final line in lines) {
-      if (!line.startsWith('data:')) continue;
-      final d = line.substring(5).trim();
-      if (d.isEmpty) continue;
-      if (d == '[DONE]') break;
-      try {
-        final j = jsonDecode(d);
-        final ch = (j['choices'] as List?)?.firstOrNull;
-        final delta = ch?['delta'];
-        final c = delta?['content'];
-        if (c is String && c.isNotEmpty) yield c;
-      } catch (_) {/* partial / keep-alive */}
-    }
-  } finally {
-    client.close();
   }
 }
 

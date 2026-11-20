@@ -32,9 +32,25 @@ class JobEngine {
       }
       emit({'type': 'done', 'chatId': job.chatId});
     } catch (e) {
-      emit({'type': 'error', 'chatId': job.chatId, 'message': e.toString()});
-      _failNote(e.toString());
+      final msg = e.toString();
+      _showErrorInChat(msg);
+      emit({'type': 'error', 'chatId': job.chatId, 'message': msg});
+      _failNote(msg);
     }
+  }
+
+  /// Puts the error into the chat itself so it is never lost in a toast.
+  void _showErrorInChat(String msg) {
+    final c = store.load(job.chatId);
+    if (c == null) return;
+    final note = '**Error:** $msg';
+    if (c.messages.isNotEmpty && c.messages.last.role == 'assistant') {
+      final m = c.messages.last;
+      m.text = m.text.trim().isEmpty ? note : '${m.text}\n\n$note';
+    } else {
+      c.messages.add(Msg(id: _id(), role: 'assistant', text: note, model: job.modelId));
+    }
+    store.save(c);
   }
 
   void _failNote(String msg) {

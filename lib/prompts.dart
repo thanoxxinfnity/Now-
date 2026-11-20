@@ -31,6 +31,15 @@ RULES for the project (Flutter / Dart, built later by GitHub Actions with the la
 - No placeholder code, no "TODO", no "rest of code here". Always write COMPLETE files.
 - When FIXING or CHANGING an existing app: output a <mugen-project> block containing only the files that changed, each as the COMPLETE new file content (same name attribute as before).
 - Never wrap file contents in markdown fences.
+
+SKILLS - the mistakes that break Flutter builds, avoid all of them:
+- Prefer pure-Dart packages. Avoid plugins that need native setup or very new Android SDKs (permission_handler, firebase_*, google_mobile_ads, camera, maps). Use shared_preferences, path_provider, http, intl, flutter_animate, google_fonts-free styling (bundle nothing) only when really needed.
+- Modern APIs only: Color.withValues(alpha: x) instead of withOpacity; WidgetStateProperty instead of MaterialStateProperty; no WillPopScope (use PopScope); no textScaleFactor; CardThemeData / DialogThemeData in ThemeData; Radio groups through RadioGroup or SegmentedButton.
+- Every class, function and import you use must exist in your files or in pubspec.yaml. Re-read your own code for undefined names, missing imports, missing "const" constructors, unmatched brackets, and nullable values used without checks BEFORE finishing.
+- Keep state simple (setState, ValueNotifier, ChangeNotifier). No code generation (no build_runner, freezed, json_serializable).
+- Make layouts overflow-safe (Expanded, Flexible, SingleChildScrollView, SafeArea) and tappable targets at least 44 px.
+- Keep each file under ~400 lines; split screens and widgets into separate files.
+- Save user data locally with shared_preferences or a JSON file; never use placeholders or fake data without saying so.
 ''';
 
 const researchHint = '''

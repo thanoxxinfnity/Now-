@@ -9,7 +9,9 @@ class Pressable extends StatefulWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final bool haptic;
-  const Pressable({super.key, required this.child, this.onTap, this.onLongPress, this.haptic = false});
+  /// Minimum size of the area that reacts to touch; the child keeps its own look (Material asks for 48 dp, 44 is the floor).
+  final double minSize;
+  const Pressable({super.key, required this.child, this.onTap, this.onLongPress, this.haptic = false, this.minSize = 0});
   @override
   State<Pressable> createState() => _PressableState();
 }
@@ -19,6 +21,22 @@ class _PressableState extends State<Pressable> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null || widget.onLongPress != null;
+    Widget body = AnimatedScale(
+      scale: _down ? 0.95 : 1,
+      duration: const Duration(milliseconds: 110),
+      curve: Curves.easeOut,
+      child: AnimatedOpacity(
+        opacity: enabled ? (_down ? 0.85 : 1) : 0.45,
+        duration: const Duration(milliseconds: 110),
+        child: widget.child,
+      ),
+    );
+    if (widget.minSize > 0) {
+      body = ConstrainedBox(
+        constraints: BoxConstraints(minWidth: widget.minSize, minHeight: widget.minSize),
+        child: Align(widthFactor: 1, heightFactor: 1, child: body),
+      );
+    }
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTapDown: enabled ? (_) => setState(() => _down = true) : null,
@@ -31,16 +49,7 @@ class _PressableState extends State<Pressable> {
               widget.onTap!();
             },
       onLongPress: widget.onLongPress,
-      child: AnimatedScale(
-        scale: _down ? 0.95 : 1,
-        duration: const Duration(milliseconds: 110),
-        curve: Curves.easeOut,
-        child: AnimatedOpacity(
-          opacity: enabled ? (_down ? 0.85 : 1) : 0.45,
-          duration: const Duration(milliseconds: 110),
-          child: widget.child,
-        ),
-      ),
+      child: body,
     );
   }
 }
@@ -68,6 +77,7 @@ class MBtn extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       haptic: true,
+      minSize: 44,
       child: Container(
         height: h,
         width: wide ? double.infinity : null,
@@ -100,6 +110,7 @@ class MIconBtn extends StatelessWidget {
   Widget build(BuildContext context) => Pressable(
         onTap: onTap,
         haptic: true,
+        minSize: 44,
         child: SizedBox(width: size, height: size, child: Icon(icon, size: 20, color: color ?? Tk.dim)),
       );
 }

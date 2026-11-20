@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:http/http.dart' as http;
 import 'package:material_ui/material_ui.dart';
 import '../github.dart';
+import '../insets.dart';
 import '../theme.dart';
 import 'scope.dart';
 import 'widgets.dart';
@@ -62,7 +63,7 @@ class _CliHubState extends State<CliHubScreen> {
       ),
       body: Column(children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          padding: scrollPadding(context, bottom: 0).copyWith(bottom: 8),
           child: TextField(
             onChanged: (v) => setState(() => q = v),
             style: ts(14),
@@ -84,7 +85,7 @@ class _CliHubState extends State<CliHubScreen> {
               : err != null
                   ? Center(child: Text(err!, style: ts(14, color: Tk.danger)))
                   : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 30),
+                      padding: scrollPadding(context, top: 4, bottom: 30),
                       itemCount: f.length,
                       itemBuilder: (_, i) => _CliCard(cli: f[i]).animate().fadeIn(delay: (i * 25).clamp(0, 300).ms, duration: 300.ms).slideY(begin: 0.08),
                     ),
@@ -113,15 +114,16 @@ class _CliCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text('${cli['install_cmd'] ?? ''}', style: ts(11.5, mono: true, color: Tk.faint)),
           const SizedBox(height: 10),
-          Row(children: [
+          // Wrap, not Row: with a large system font or a narrow phone the buttons go to a second line instead of overflowing.
+          Wrap(spacing: 8, runSpacing: 4, children: [
             MBtn('Run in cloud', icon: Icons.cloud_queue_rounded, small: true, kind: BtnKind.primary, onTap: () => showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
+                  useSafeArea: true,
                   backgroundColor: Tk.card,
                   shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(Tk.rXl))),
                   builder: (_) => AppScope(state: AppScope.read(context), child: _RunSheet(cli: cli)),
                 )),
-            const SizedBox(width: 8),
             MBtn('Ask Mugen', icon: Icons.auto_awesome, small: true, onTap: () async {
               final app = AppScope.read(context);
               app.newChat();
@@ -202,8 +204,15 @@ class _RunSheetState extends State<_RunSheet> {
   }
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).viewInsets.bottom),
+  Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    final keyboard = mq.viewInsets.bottom;
+    // The keyboard lifts the whole sheet (so the visible area ends above it); the navigation bar
+    // only matters while the keyboard is closed. Content that does not fit scrolls.
+    return Padding(
+      padding: EdgeInsets.only(bottom: keyboard),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(16 + mq.padding.left, 16, 16 + mq.padding.right, 16 + (keyboard > 0 ? 0 : mq.padding.bottom)),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Run ${widget.cli['display_name'] ?? widget.cli['name']}', style: ts(18, w: 600)),
           const SizedBox(height: 4),
@@ -236,5 +245,7 @@ class _RunSheetState extends State<_RunSheet> {
             ),
           if (log.isNotEmpty) MBtn('Copy log', icon: Icons.copy_rounded, small: true, kind: BtnKind.ghost, onTap: () => Clipboard.setData(ClipboardData(text: log))),
         ]),
-      );
+      ),
+    );
+  }
 }

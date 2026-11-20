@@ -423,7 +423,7 @@ class _HistoryDrawerState extends State<_HistoryDrawer> {
         onTap: f,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Row(children: [Icon(i, size: 19, color: Tk.dim), const SizedBox(width: 14), Text(t, style: ts(15, color: Tk.text))]),
+          child: Row(children: [Icon(i, size: 19, color: Tk.dim), const SizedBox(width: 14), Expanded(child: Text(t, style: ts(15, color: Tk.text), maxLines: 1, overflow: TextOverflow.ellipsis))]),
         ),
       );
 }

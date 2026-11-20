@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import '../api.dart';
 import '../models.dart';
 import '../state.dart';
+import '../insets.dart';
 import '../theme.dart';
 import 'scope.dart';
 import 'test_dialog.dart';
@@ -22,7 +23,7 @@ class SettingsScreen extends StatelessWidget {
         leading: MIconBtn(Icons.arrow_back_rounded, color: Tk.text, onTap: () => Navigator.pop(context)),
         title: Text('Settings', style: ts(19, w: 600)),
       ),
-      body: ListView(padding: const EdgeInsets.fromLTRB(16, 0, 16, 40), children: [
+      body: ListView(padding: scrollPadding(context, bottom: 40), children: [
         const Caption('AI providers'),
         for (final p in s.providers) _ProviderCard(key: ValueKey(p.id), p: p),
         const SizedBox(height: 4),

@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import '../api.dart';
 import '../models.dart';
 import '../state.dart';
+import '../insets.dart';
 import '../theme.dart';
 import 'scope.dart';
 import 'test_dialog.dart';
@@ -107,7 +108,7 @@ class _PickerState extends State<_Picker> {
         Expanded(
           child: p == null
               ? const _Hint('Turn on a provider in Settings.')
-              : ListView(controller: sc, padding: const EdgeInsets.fromLTRB(12, 0, 12, 24), children: [
+              : ListView(controller: sc, padding: scrollPadding(context, horizontal: 12, bottom: 24), children: [
                   if (ql.isNotEmpty && !exact)
                     _row(app, p, ModelInfo(id: q.trim(), name: 'Use "${q.trim()}" as model ID', providerId: p.id), manual: true),
                   if (all.isEmpty)

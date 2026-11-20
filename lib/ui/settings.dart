@@ -1,8 +1,10 @@
 import 'package:material_ui/material_ui.dart';
+import '../api.dart';
 import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
 import 'scope.dart';
+import 'test_dialog.dart';
 import 'widgets.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -151,12 +153,33 @@ class _FieldState extends State<_Field> {
       );
 }
 
-class _ProviderCard extends StatelessWidget {
+class _ProviderCard extends StatefulWidget {
   final ProviderConfig p;
   const _ProviderCard({super.key, required this.p});
+  @override
+  State<_ProviderCard> createState() => _ProviderCardState();
+}
+
+class _ProviderCardState extends State<_ProviderCard> {
+  bool testing = false;
+  TestResult? result;
+
+  Future<void> _test() async {
+    setState(() {
+      testing = true;
+      result = null;
+    });
+    final r = await testConnection(widget.p);
+    if (!mounted) return;
+    setState(() {
+      testing = false;
+      result = r;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final p = widget.p;
     final app = AppScope.of(context);
     final n = app.settings.models[p.id]?.length ?? 0;
     final fetching = app.fetching[p.id] ?? false;
@@ -205,13 +228,17 @@ class _ProviderCard extends StatelessWidget {
             }),
           ],
           const SizedBox(height: 10),
-          MBtn(fetching ? 'Loading...' : (n > 0 ? 'Refresh models' : 'Load models'), icon: Icons.cloud_download_outlined, small: true, onTap: fetching
-              ? null
-              : () async {
-                  final err = await app.refreshModels(p);
-                  if (!context.mounted) return;
-                  toast(context, err ?? 'Models loaded', error: err != null);
-                }),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            MBtn(fetching ? 'Loading...' : (n > 0 ? 'Refresh models' : 'Load models'), icon: Icons.cloud_download_outlined, small: true, onTap: fetching
+                ? null
+                : () async {
+                    final err = await app.refreshModels(p);
+                    if (!context.mounted) return;
+                    toast(context, err ?? 'Models loaded', error: err != null);
+                  }),
+            MBtn(testing ? 'Testing...' : 'Test connection', icon: Icons.network_check_rounded, small: true, onTap: testing ? null : _test),
+          ]),
+          if (result != null) ...[const SizedBox(height: 10), TestResultBox(result!)],
         ]),
       ),
     );

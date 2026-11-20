@@ -20,6 +20,9 @@ typedef ClientFactory = http.Client Function();
 typedef Sleeper = Future<void> Function(Duration d);
 typedef StatusSink = void Function(String text);
 
+/// What every call uses when no client is passed in. Tests (including widget tests) replace it with a scripted server.
+ClientFactory defaultClientFactory = http.Client.new;
+
 Map<String, String> _headers(ProviderConfig p) => {
       'Content-Type': 'application/json',
       if (p.apiKey.isNotEmpty) 'Authorization': 'Bearer ${p.apiKey}',
@@ -34,7 +37,7 @@ String _trimSlash(String s) => s.endsWith('/') ? s.substring(0, s.length - 1) : 
 /// model names show up on their own.
 Future<List<ModelInfo>> fetchModels(ProviderConfig p, {ClientFactory? clientFactory}) async {
   final base = _trimSlash(p.baseUrl);
-  final client = (clientFactory ?? http.Client.new)();
+  final client = (clientFactory ?? defaultClientFactory)();
   try {
     if (p.kind == ProviderKind.gemini) {
       final out = <ModelInfo>[];
@@ -303,7 +306,7 @@ Stream<String> streamChat({
   final uri = Uri.parse('${_trimSlash(provider.baseUrl)}/chat/completions');
 
   while (true) {
-    final client = (clientFactory ?? http.Client.new)();
+    final client = (clientFactory ?? defaultClientFactory)();
     var got = false;
     var reasoning = 0;
     String? finish;
@@ -358,43 +361,51 @@ Stream<String> streamChat({
           yield c;
         }
       } else {
-        final lines = res.stream.timeout(const Duration(seconds: 75)).transform(utf8.decoder).transform(const LineSplitter());
+        // `moveNext().timeout` is the idle limit: 75 s without a single byte. (Stream.timeout would do the same, but
+        // it does not deliver events under the test framework's fake clock.)
+        final lines = StreamIterator(res.stream.transform(utf8.decoder).transform(const LineSplitter()));
         var thinking = false;
-        await for (final line in lines) {
-          if (!line.startsWith('data:')) continue; // ": keep-alive" comments and blank lines
-          final d = line.substring(5).trim();
-          if (d.isEmpty) continue;
-          if (d == '[DONE]') break;
-          dynamic j;
-          try {
-            j = jsonDecode(d);
-          } catch (_) {
-            continue; // a partial line
-          }
-          if (j is! Map) continue;
-          if (j['error'] != null) {
-            final e = j['error'];
-            throw ApiError('$who - ${e is Map ? (e['message'] ?? e) : e}');
-          }
-          final ch = (j['choices'] as List?)?.firstOrNull;
-          if (ch is! Map) continue;
-          final delta = ch['delta'] ?? ch['message'];
-          if (delta is Map) {
-            final r = _textOf(delta['reasoning_content'] ?? delta['reasoning']);
-            if (r.isNotEmpty) {
-              reasoning += r.length;
-              if (!thinking && !got) {
-                thinking = true;
-                onStatus?.call('Thinking...');
+        try {
+          while (await lines.moveNext().timeout(const Duration(seconds: 75))) {
+            final line = lines.current;
+            if (!line.startsWith('data:')) continue; // ": keep-alive" comments and blank lines
+            final d = line.substring(5).trim();
+            if (d.isEmpty) continue;
+            if (d == '[DONE]') break;
+            dynamic j;
+            try {
+              j = jsonDecode(d);
+            } catch (_) {
+              continue; // a partial line
+            }
+            if (j is! Map) continue;
+            if (j['error'] != null) {
+              final e = j['error'];
+              throw ApiError('$who - ${e is Map ? (e['message'] ?? e) : e}');
+            }
+            final ch = (j['choices'] as List?)?.firstOrNull;
+            if (ch is! Map) continue;
+            final delta = ch['delta'] ?? ch['message'];
+            if (delta is Map) {
+              final r = _textOf(delta['reasoning_content'] ?? delta['reasoning']);
+              if (r.isNotEmpty) {
+                reasoning += r.length;
+                if (!thinking && !got) {
+                  thinking = true;
+                  onStatus?.call('Thinking...');
+                }
+              }
+              final c = _textOf(delta['content']);
+              if (c.isNotEmpty) {
+                got = true;
+                yield c;
               }
             }
-            final c = _textOf(delta['content']);
-            if (c.isNotEmpty) {
-              got = true;
-              yield c;
-            }
+            if (ch['finish_reason'] != null) finish = ch['finish_reason'].toString();
           }
-          if (ch['finish_reason'] != null) finish = ch['finish_reason'].toString();
+        } finally {
+          // Not awaited: the answer is complete, and waiting for the socket to close only delays it.
+          lines.cancel().ignore();
         }
       }
 

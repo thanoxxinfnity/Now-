@@ -1,8 +1,10 @@
 import 'package:material_ui/material_ui.dart';
+import '../api.dart';
 import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
 import 'scope.dart';
+import 'test_dialog.dart';
 import 'widgets.dart';
 
 void showModelPicker(BuildContext context) {
@@ -107,19 +109,19 @@ class _PickerState extends State<_Picker> {
               ? const _Hint('Turn on a provider in Settings.')
               : ListView(controller: sc, padding: const EdgeInsets.fromLTRB(12, 0, 12, 24), children: [
                   if (ql.isNotEmpty && !exact)
-                    _row(app, ModelInfo(id: q.trim(), name: 'Use "${q.trim()}" as model ID', providerId: p.id), manual: true),
+                    _row(app, p, ModelInfo(id: q.trim(), name: 'Use "${q.trim()}" as model ID', providerId: p.id), manual: true),
                   if (all.isEmpty)
                     _Hint(p.apiKey.isEmpty && p.kind != ProviderKind.openrouter
                         ? 'Add your ${p.name} API key in Settings, then tap refresh.'
                         : 'Tap refresh to load the live model list, or type a model ID above.'),
-                  ...f.map((m) => _row(app, m)),
+                  ...f.map((m) => _row(app, p, m)),
                 ]),
         ),
       ]),
     );
   }
 
-  Widget _row(AppState app, ModelInfo m, {bool manual = false}) {
+  Widget _row(AppState app, ProviderConfig p, ModelInfo m, {bool manual = false}) {
     final sel = !manual && app.settings.selProvider == m.providerId && app.settings.selModel == m.id;
     return Pressable(
       onTap: () async {
@@ -142,6 +144,27 @@ class _PickerState extends State<_Picker> {
             ]),
           ),
           if (sel) const Icon(Icons.check_rounded, size: 18, color: Tk.accentInk),
+          const SizedBox(width: 4),
+          // Sends one short prompt to this model and shows the exact reply or the exact error.
+          Pressable(
+            onTap: () => showTestDialog(
+              context,
+              title: 'Test model',
+              working: 'Sending one short prompt to ${m.id}...',
+              run: () => testModel(p, m.id),
+            ),
+            child: Container(
+              height: 34,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(Tk.r), border: Border.all(color: Tk.border)),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.bolt_rounded, size: 15, color: Tk.accentInk),
+                const SizedBox(width: 4),
+                Text('Test', style: ts(12.5, w: 500, color: Tk.dim)),
+              ]),
+            ),
+          ),
         ]),
       ),
     );

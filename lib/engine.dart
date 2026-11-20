@@ -113,7 +113,17 @@ class JobEngine {
 
     var lastSave = DateTime.now();
     var lastNote = DateTime.now();
-    await for (final d in streamChat(provider: job.provider, model: job.modelId, messages: msgs, temperature: job.temperature)) {
+    await for (final d in streamChat(
+      provider: job.provider,
+      model: job.modelId,
+      messages: msgs,
+      temperature: job.temperature,
+      // Waits and retries ("Rate limited, trying again in 4 s") show beside the typing dots instead of looking like a hang.
+      onStatus: (t) {
+        emit({'type': 'status', 'chatId': job.chatId, 'text': t});
+        notify('Mugen', t);
+      },
+    )) {
       reply.text += d;
       emit({'type': 'delta', 'chatId': job.chatId, 'text': d});
       final now = DateTime.now();

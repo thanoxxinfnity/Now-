@@ -1,0 +1,963 @@
+{
+ "data": [
+  {
+   "id": "mistralai/pixtral-large-2502",
+   "canonical_slug": "mistralai/pixtral-large-2502",
+   "name": "Mistral: Pixtral Large 2502",
+   "context_length": 128000,
+   "architecture": {
+    "modality": "text+image->text",
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Mistral",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000002",
+    "completion": "0.000006"
+   }
+  },
+  {
+   "id": "google/gemini-4-neon",
+   "canonical_slug": "google/gemini-4-neon-20261118",
+   "name": "Google: Gemini 4 Neon",
+   "context_length": 1048576,
+   "architecture": {
+    "modality": "text+image+file+audio+video->text",
+    "input_modalities": [
+     "audio",
+     "file",
+     "image",
+     "text",
+     "video"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Gemini",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000003",
+    "completion": "0.000015",
+    "image": "0.000003",
+    "audio": "0.000003",
+    "input_audio_cache": "0.00000015",
+    "web_search": "0.014",
+    "internal_reasoning": "0.000015",
+    "input_cache_read": "0.00000015",
+    "input_cache_write": "0.0000000833333333333333"
+   }
+  },
+  {
+   "id": "google/gemini-4-neon:batch",
+   "canonical_slug": "google/gemini-4-neon-20261118",
+   "name": "Google: Gemini 4 Neon (batch)",
+   "context_length": 1048576,
+   "architecture": {
+    "modality": "text+image+file+audio+video->text",
+    "input_modalities": [
+     "audio",
+     "file",
+     "image",
+     "text",
+     "video"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Gemini",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.0000015",
+    "completion": "0.0000075",
+    "image": "0.0000015",
+    "audio": "0.0000015",
+    "input_audio_cache": "0.000000075",
+    "web_search": "0.014",
+    "internal_reasoning": "0.0000075",
+    "input_cache_read": "0.000000075",
+    "input_cache_write": "0.0000000833333333333333"
+   }
+  },
+  {
+   "id": "openai/gpt-6.2-astra-pro",
+   "canonical_slug": "openai/gpt-6.2-astra-pro-20261117",
+   "name": "OpenAI: GPT-6.2 Astra Pro",
+   "context_length": 1050000,
+   "architecture": {
+    "modality": "text+image+file->text",
+    "input_modalities": [
+     "file",
+     "image",
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "GPT",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000008",
+    "completion": "0.00004",
+    "web_search": "0.01",
+    "input_cache_read": "0.0000004",
+    "input_cache_write": "0.00001",
+    "overrides": [
+     {
+      "min_prompt_tokens": 272000,
+      "prompt": "0.000016",
+      "completion": "0.00006",
+      "input_cache_read": "0.0000008",
+      "input_cache_write": "0.00002"
+     }
+    ]
+   }
+  },
+  {
+   "id": "openai/gpt-6.2-astra-pro:batch",
+   "canonical_slug": "openai/gpt-6.2-astra-pro-20261117",
+   "name": "OpenAI: GPT-6.2 Astra Pro (batch)",
+   "context_length": 1050000,
+   "architecture": {
+    "modality": "text+image+file->text",
+    "input_modalities": [
+     "file",
+     "image",
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "GPT",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000004",
+    "completion": "0.00002",
+    "web_search": "0.01",
+    "input_cache_read": "0.0000002",
+    "input_cache_write": "0.000005",
+    "overrides": [
+     {
+      "min_prompt_tokens": 272000,
+      "prompt": "0.000008",
+      "completion": "0.00003",
+      "input_cache_read": "0.0000004",
+      "input_cache_write": "0.00001"
+     }
+    ]
+   }
+  },
+  {
+   "id": "openai/gpt-6.2-astra",
+   "canonical_slug": "openai/gpt-6.2-astra-20261117",
+   "name": "OpenAI: GPT-6.2 Astra",
+   "context_length": 1050000,
+   "architecture": {
+    "modality": "text+image+file->text",
+    "input_modalities": [
+     "file",
+     "image",
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "GPT",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000008",
+    "completion": "0.00004",
+    "web_search": "0.01",
+    "input_cache_read": "0.0000004",
+    "input_cache_write": "0.00001",
+    "overrides": [
+     {
+      "min_prompt_tokens": 272000,
+      "prompt": "0.000016",
+      "completion": "0.00006",
+      "input_cache_read": "0.0000008",
+      "input_cache_write": "0.00002"
+     }
+    ]
+   }
+  },
+  {
+   "id": "openai/gpt-6.2-astra:batch",
+   "canonical_slug": "openai/gpt-6.2-astra-20261117",
+   "name": "OpenAI: GPT-6.2 Astra (batch)",
+   "context_length": 1050000,
+   "architecture": {
+    "modality": "text+image+file->text",
+    "input_modalities": [
+     "file",
+     "image",
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "GPT",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000004",
+    "completion": "0.00002",
+    "web_search": "0.01",
+    "input_cache_read": "0.0000002",
+    "input_cache_write": "0.000005",
+    "overrides": [
+     {
+      "min_prompt_tokens": 272000,
+      "prompt": "0.000008",
+      "completion": "0.00003",
+      "input_cache_read": "0.0000004",
+      "input_cache_write": "0.00001"
+     }
+    ]
+   }
+  },
+  {
+   "id": "openai/gpt-6.2-sol-pro",
+   "canonical_slug": "openai/gpt-6.2-sol-pro-20261117",
+   "name": "OpenAI: GPT-6.2 Sol Pro",
+   "context_length": 1050000,
+   "architecture": {
+    "modality": "text+image+file->text",
+    "input_modalities": [
+     "file",
+     "image",
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "GPT",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000002",
+    "completion": "0.00001",
+    "web_search": "0.01",
+    "input_cache_read": "0.0000001",
+    "input_cache_write": "0.0000025",
+    "overrides": [
+     {
+      "min_prompt_tokens": 272000,
+      "prompt": "0.000004",
+      "completion": "0.000015",
+      "input_cache_read": "0.0000002",
+      "input_cache_write": "0.000005"
+     }
+    ]
+   }
+  },
+  {
+   "id": "openai/gpt-6.2-sol-pro:batch",
+   "canonical_slug": "openai/gpt-6.2-sol-pro-20261117",
+   "name": "OpenAI: GPT-6.2 Sol Pro (batch)",
+   "context_length": 1050000,
+   "architecture": {
+    "modality": "text+image+file->text",
+    "input_modalities": [
+     "file",
+     "image",
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "GPT",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000001",
+    "completion": "0.000005",
+    "web_search": "0.01",
+    "input_cache_read": "0.00000005",
+    "input_cache_write": "0.00000125",
+    "overrides": [
+     {
+      "min_prompt_tokens": 272000,
+      "prompt": "0.000002",
+      "completion": "0.0000075",
+      "input_cache_read": "0.0000001",
+      "input_cache_write": "0.0000025"
+     }
+    ]
+   }
+  },
+  {
+   "id": "openai/gpt-6.2-sol",
+   "canonical_slug": "openai/gpt-6.2-sol-20261117",
+   "name": "OpenAI: GPT-6.2 Sol",
+   "context_length": 1050000,
+   "architecture": {
+    "modality": "text+image+file->text",
+    "input_modalities": [
+     "file",
+     "image",
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "GPT",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000002",
+    "completion": "0.00001",
+    "web_search": "0.01",
+    "input_cache_read": "0.0000001",
+    "input_cache_write": "0.0000025",
+    "overrides": [
+     {
+      "min_prompt_tokens": 272000,
+      "prompt": "0.000004",
+      "completion": "0.000015",
+      "input_cache_read": "0.0000002",
+      "input_cache_write": "0.000005"
+     }
+    ]
+   }
+  },
+  {
+   "id": "openai/gpt-6.2-sol:batch",
+   "canonical_slug": "openai/gpt-6.2-sol-20261117",
+   "name": "OpenAI: GPT-6.2 Sol (batch)",
+   "context_length": 1050000,
+   "architecture": {
+    "modality": "text+image+file->text",
+    "input_modalities": [
+     "file",
+     "image",
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "GPT",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000001",
+    "completion": "0.000005",
+    "web_search": "0.01",
+    "input_cache_read": "0.00000005",
+    "input_cache_write": "0.00000125",
+    "overrides": [
+     {
+      "min_prompt_tokens": 272000,
+      "prompt": "0.000002",
+      "completion": "0.0000075",
+      "input_cache_read": "0.0000001",
+      "input_cache_write": "0.0000025"
+     }
+    ]
+   }
+  },
+  {
+   "id": "tencent/hy4-flash",
+   "canonical_slug": "tencent/hy4-flash-20261116",
+   "name": "Tencent: Hy4 flash",
+   "context_length": 1048576,
+   "architecture": {
+    "modality": "text+image->text",
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000000035",
+    "completion": "0.0000001405",
+    "input_cache_read": "0.0000000015"
+   }
+  },
+  {
+   "id": "qwen/qwen4-max",
+   "canonical_slug": "qwen/qwen4-max-20261115",
+   "name": "Qwen: Qwen4 Max",
+   "context_length": 1000000,
+   "architecture": {
+    "modality": "text+image+video->text",
+    "input_modalities": [
+     "text",
+     "image",
+     "video"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Qwen",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000001425",
+    "completion": "0.000004275",
+    "input_cache_read": "0.00000007125",
+    "input_cache_write": "0.00000178125"
+   }
+  },
+  {
+   "id": "inclusionai/ling-3.2-flash:free",
+   "canonical_slug": "inclusionai/ling-3.2-flash-20261113",
+   "name": "inclusionAI: Ling 3.2 Flash (free)",
+   "context_length": 1048576,
+   "architecture": {
+    "modality": "text+image->text",
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0",
+    "completion": "0"
+   }
+  },
+  {
+   "id": "google/gemini-4-hydrogen",
+   "canonical_slug": "google/gemini-4-hydrogen-20261112",
+   "name": "Google: Gemini 4 Hydrogen",
+   "context_length": 1048576,
+   "architecture": {
+    "modality": "text+image+file+audio+video->text",
+    "input_modalities": [
+     "audio",
+     "file",
+     "image",
+     "text",
+     "video"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Gemini",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.0000015",
+    "completion": "0.0000075",
+    "image": "0.0000015",
+    "audio": "0.0000015",
+    "input_audio_cache": "0.000000075",
+    "web_search": "0.014",
+    "internal_reasoning": "0.0000075",
+    "input_cache_read": "0.000000075",
+    "input_cache_write": "0.0000000833333333333333"
+   }
+  },
+  {
+   "id": "google/gemini-4-hydrogen:batch",
+   "canonical_slug": "google/gemini-4-hydrogen-20261112",
+   "name": "Google: Gemini 4 Hydrogen (batch)",
+   "context_length": 1048576,
+   "architecture": {
+    "modality": "text+image+file+audio+video->text",
+    "input_modalities": [
+     "audio",
+     "file",
+     "image",
+     "text",
+     "video"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Gemini",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.00000075",
+    "completion": "0.00000375",
+    "image": "0.00000075",
+    "audio": "0.00000075",
+    "input_audio_cache": "0.0000000375",
+    "web_search": "0.014",
+    "internal_reasoning": "0.00000375",
+    "input_cache_read": "0.0000000375",
+    "input_cache_write": "0.0000000833333333333333"
+   }
+  },
+  {
+   "id": "baidu/ernie-5.5-flash-preview:free",
+   "canonical_slug": "baidu/ernie-5.5-flash-preview-20261110",
+   "name": "Baidu: ERNIE-5.5-Flash-Preview (free)",
+   "context_length": 1024000,
+   "architecture": {
+    "modality": "text->text",
+    "input_modalities": [
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0",
+    "completion": "0"
+   }
+  },
+  {
+   "id": "baidu/ernie-light-dt-1.0-intl",
+   "canonical_slug": "baidu/ernie-light-dt-1.0-intl-20261110",
+   "name": "Baidu: ERNIE-Light-DT-1.0",
+   "context_length": 1024000,
+   "architecture": {
+    "modality": "text->text",
+    "input_modalities": [
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.00000113",
+    "completion": "0.00000394",
+    "input_cache_read": "0.000000113"
+   }
+  },
+  {
+   "id": "google/gemini-4-carbon",
+   "canonical_slug": "google/gemini-4-carbon-20261110",
+   "name": "Google: Gemini 4 Carbon",
+   "context_length": 1048576,
+   "architecture": {
+    "modality": "text+image+file+audio+video->text",
+    "input_modalities": [
+     "audio",
+     "file",
+     "image",
+     "text",
+     "video"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Gemini",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000002",
+    "completion": "0.00001",
+    "image": "0.000002",
+    "audio": "0.000002",
+    "input_audio_cache": "0.0000001",
+    "web_search": "0.014",
+    "internal_reasoning": "0.00001",
+    "input_cache_read": "0.0000001",
+    "input_cache_write": "0.0000001875"
+   }
+  },
+  {
+   "id": "google/gemini-4-carbon:batch",
+   "canonical_slug": "google/gemini-4-carbon-20261110",
+   "name": "Google: Gemini 4 Carbon (batch)",
+   "context_length": 1048576,
+   "architecture": {
+    "modality": "text+image+file+audio+video->text",
+    "input_modalities": [
+     "audio",
+     "file",
+     "image",
+     "text",
+     "video"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Gemini",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000001",
+    "completion": "0.000005",
+    "image": "0.000001",
+    "audio": "0.000001",
+    "input_audio_cache": "0.00000005",
+    "web_search": "0.014",
+    "internal_reasoning": "0.000005",
+    "input_cache_read": "0.00000005",
+    "input_cache_write": "0.0000001875"
+   }
+  },
+  {
+   "id": "nex-agi/nex-n2.6",
+   "canonical_slug": "nex-agi/nex-n2.6-20261110",
+   "name": "Nex AGI: Nex-N2.6",
+   "context_length": 262144,
+   "architecture": {
+    "modality": "text+image->text",
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.00000012",
+    "completion": "0.0000004",
+    "input_cache_read": "0.000000024"
+   }
+  },
+  {
+   "id": "thinkingmachines/inkling-2-small",
+   "canonical_slug": "thinkingmachines/inkling-2-small-20261107",
+   "name": "Thinking Machines: Inkling 2 Small",
+   "context_length": 1048576,
+   "architecture": {
+    "modality": "text+image->text",
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.0000003",
+    "completion": "0.000001",
+    "input_cache_read": "0.00000003"
+   }
+  },
+  {
+   "id": "anthropic/claude-fable-5.2",
+   "canonical_slug": "anthropic/claude-fable-5.2-20261109",
+   "name": "Anthropic: Claude Fable 5.2",
+   "context_length": 1000000,
+   "architecture": {
+    "modality": "text+image+file->text",
+    "input_modalities": [
+     "text",
+     "image",
+     "file"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Claude",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000008",
+    "completion": "0.00004",
+    "web_search": "0.01",
+    "input_cache_read": "0.0000002",
+    "input_cache_write": "0.00001",
+    "input_cache_write_1h": "0.000016"
+   }
+  },
+  {
+   "id": "anthropic/claude-fable-5.2:batch",
+   "canonical_slug": "anthropic/claude-fable-5.2-20261109",
+   "name": "Anthropic: Claude Fable 5.2 (batch)",
+   "context_length": 1000000,
+   "architecture": {
+    "modality": "text+image+file->text",
+    "input_modalities": [
+     "text",
+     "image",
+     "file"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Claude",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000004",
+    "completion": "0.00002",
+    "web_search": "0.01",
+    "input_cache_read": "0.0000001",
+    "input_cache_write": "0.000005",
+    "input_cache_write_1h": "0.000008"
+   }
+  },
+  {
+   "id": "meta/muse-ember",
+   "canonical_slug": "meta/muse-ember-20261109",
+   "name": "Meta: Muse Ember",
+   "context_length": 1048576,
+   "architecture": {
+    "modality": "text+image+file+audio+video->text",
+    "input_modalities": [
+     "text",
+     "image",
+     "video",
+     "file",
+     "audio"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.0000001",
+    "completion": "0.0000005",
+    "web_search": "0.0025",
+    "input_cache_read": "0.000000004",
+    "input_cache_write": "0.000000125"
+   }
+  },
+  {
+   "id": "liquid/lfm-3-1.7b",
+   "canonical_slug": "liquid/lfm-3-1.7b-20261106",
+   "name": "LiquidAI: LFM3-1.7B",
+   "context_length": 262144,
+   "architecture": {
+    "modality": "text->text",
+    "input_modalities": [
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.00000008",
+    "completion": "0.0000002",
+    "input_cache_read": "0.00000002"
+   }
+  },
+  {
+   "id": "liquid/lfm-3-1.7b:free",
+   "canonical_slug": "liquid/lfm-3-1.7b-20261106",
+   "name": "LiquidAI: LFM3-1.7B (free)",
+   "context_length": 262144,
+   "architecture": {
+    "modality": "text->text",
+    "input_modalities": [
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0",
+    "completion": "0"
+   }
+  },
+  {
+   "id": "google/gemini-omni-1.2-flash",
+   "canonical_slug": "google/gemini-omni-1.2-flash-20261105",
+   "name": "Google: Gemini Omni 1.2 Flash",
+   "context_length": 131072,
+   "architecture": {
+    "modality": "text+image+video->text+video",
+    "input_modalities": [
+     "text",
+     "image",
+     "video"
+    ],
+    "output_modalities": [
+     "text",
+     "video"
+    ],
+    "tokenizer": "Gemini",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.0000015",
+    "completion": "0.000009",
+    "web_search": "0.014"
+   }
+  },
+  {
+   "id": "kt/midm-k-3.0-pro",
+   "canonical_slug": "kt/midm-k-3.0-pro",
+   "name": "KT: Mi:dm K 3.0 Pro",
+   "context_length": 261795,
+   "architecture": {
+    "modality": "text->text",
+    "input_modalities": [
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.0000002",
+    "completion": "0.0000008",
+    "input_cache_read": "0.00000004"
+   }
+  },
+  {
+   "id": "google/gemini-omni-1.1-flash",
+   "canonical_slug": "google/gemini-omni-1.1-flash-20260911",
+   "name": "Google: Gemini Omni 1.1 Flash",
+   "context_length": 131072,
+   "architecture": {
+    "modality": "text+image+video->text+video",
+    "input_modalities": [
+     "text",
+     "image",
+     "video"
+    ],
+    "output_modalities": [
+     "text",
+     "video"
+    ],
+    "tokenizer": "Gemini",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.0000015",
+    "completion": "0.000009",
+    "web_search": "0.014"
+   }
+  },
+  {
+   "id": "particle-ai/particle-1:free",
+   "canonical_slug": "particle-ai/particle-1-20261027",
+   "name": "Particle AI: Particle-1 (free)",
+   "context_length": 1048576,
+   "architecture": {
+    "modality": "text+image->text",
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0",
+    "completion": "0"
+   }
+  },
+  {
+   "id": "recursive/flint-v1.0:free",
+   "canonical_slug": "recursive/flint-v1.0-20261021",
+   "name": "Recursive: Flint (free)",
+   "context_length": 262144,
+   "architecture": {
+    "modality": "text->text",
+    "input_modalities": [
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0",
+    "completion": "0"
+   }
+  },
+  {
+   "id": "nvidia/nemotron-3.5-super-vl:free",
+   "canonical_slug": "nvidia/nemotron-3.5-super-vl-20261015",
+   "name": "NVIDIA: Nemotron 3.5 Super VL (free)",
+   "context_length": 1000000,
+   "architecture": {
+    "modality": "text+image+video->text",
+    "input_modalities": [
+     "text",
+     "image",
+     "video"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0",
+    "completion": "0"
+   }
+  },
+  {
+   "id": "dots-studio/dots-3-note-preview:free",
+   "canonical_slug": "dots-studio/dots-3-note-preview-20260813",
+   "name": "Dots Studio: Dots3-Note Preview (free)",
+   "context_length": 512000,
+   "architecture": {
+    "modality": "text+image->text",
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0",
+    "completion": "0"
+   }
+  },
+  {
+   "id": "nvidia/nemotron-3.5-lightning:free",
+   "canonical_slug": "nvidia/nemotron-3.5-lightning-20260807",
+   "name": "NVIDIA: Nemotron 3.5 Lightning (free)",
+   "context_length": 1000000,
+   "architecture": {
+    "modality": "text->text",
+    "input_modalities": [
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0",
+    "completion": "0"
+   }
+  }
+ ]
+}

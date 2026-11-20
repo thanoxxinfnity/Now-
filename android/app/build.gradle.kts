@@ -1,8 +1,30 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// Release signing. The same key must sign every build: Android refuses to install an update
+// ("package invalid" / "conflicts with an existing package") when the signature changes, and the
+// debug key is generated fresh on every CI runner, so it changes on every build.
+//
+// The key comes from environment variables (GitHub Actions secrets) or, for local builds, from
+// android/key.properties. Both use the same four names. Neither file nor values are ever committed.
+//   KEYSTORE_FILE (path), KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
+val keyProps = Properties().apply {
+    val f = rootProject.file("key.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+fun signingValue(name: String): String? =
+    System.getenv(name)?.takeIf { it.isNotBlank() } ?: keyProps.getProperty(name)?.takeIf { it.isNotBlank() }
+val releaseStore: File? = signingValue("KEYSTORE_FILE")?.let { path ->
+    val f = File(path)
+    if (f.isAbsolute) f else rootProject.file(path)
+}
+val hasReleaseKey = releaseStore != null && releaseStore.exists() &&
+    signingValue("KEYSTORE_PASSWORD") != null && signingValue("KEY_ALIAS") != null && signingValue("KEY_PASSWORD") != null
 
 android {
     namespace = "com.mugen.mugen_ai"
@@ -29,11 +51,27 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (hasReleaseKey) {
+            create("release") {
+                storeFile = releaseStore
+                storePassword = signingValue("KEYSTORE_PASSWORD")
+                keyAlias = signingValue("KEY_ALIAS")
+                keyPassword = signingValue("KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (hasReleaseKey) {
+                signingConfigs.getByName("release")
+            } else {
+                // No release key configured (a fork, a first run): a debug-signed APK still installs
+                // as a fresh app, but it can NOT update an app signed with another key.
+                logger.warn("WARNING: no release keystore configured; signing with the DEBUG key")
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }

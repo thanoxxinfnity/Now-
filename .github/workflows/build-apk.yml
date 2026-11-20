@@ -24,7 +24,103 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze --no-fatal-infos
       - run: flutter test
-      - run: flutter build apk --release --split-per-abi
+      - name: Restore the release keystore (GitHub Secrets)
+        id: key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "signing=debug" >> "$GITHUB_OUTPUT"
+            echo "::warning title=APK is signed with the DEBUG key::KEYSTORE_BASE64 is not set, so this APK cannot update an app installed from another build. See README, section Stable signing."
+            exit 0
+          fi
+          missing=""
+          for v in KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then missing="$missing $v"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error title=Incomplete signing secrets::KEYSTORE_BASE64 is set but these secrets are missing:$missing"
+            exit 1
+          fi
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          if ! keytool -list -keystore "$RUNNER_TEMP/release.keystore" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null 2>&1; then
+            echo "::error title=Keystore cannot be opened::KEYSTORE_BASE64 is not a valid keystore, or KEYSTORE_PASSWORD / KEY_ALIAS do not match it."
+            exit 1
+          fi
+          echo "KEYSTORE_FILE=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
+          echo "signing=release" >> "$GITHUB_OUTPUT"
+          echo "Release keystore restored (alias $KEY_ALIAS)."
+      - name: Build per-ABI release APKs
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        # The run number is the version code, so every build can be installed over the one before it.
+        run: flutter build apk --release --split-per-abi --build-number=${{ github.run_number }}
+      - name: Verify the APKs (signature, package, SDK levels, 16 KB alignment)
+        env:
+          SIGNING: ${{ steps.key.outputs.signing }}
+        run: |
+          BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          echo "build-tools: $BT"
+          dir=build/app/outputs/flutter-apk
+          certs=""
+          {
+            echo "| File | ABI | Size | Version code | minSdk / targetSdk |"
+            echo "|---|---|---|---|---|"
+          } > table.md
+          for pair in "arm64-v8a:MugenAI.apk" "armeabi-v7a:MugenAI-32bit.apk"; do
+            abi="${pair%%:*}"; name="${pair##*:}"
+            apk="$dir/app-$abi-release.apk"
+            echo "::group::$name ($abi)"
+            "$BT/apksigner" verify --verbose --print-certs "$apk" | tee sig.txt
+            "$BT/aapt2" dump badging "$apk" > badging.txt
+            grep -E "^package:|^minSdkVersion|^targetSdkVersion|^native-code" badging.txt
+            digest="$(grep -m1 'certificate SHA-256 digest' sig.txt | sed 's/.*: //')"
+            dn="$(grep -m1 'certificate DN' sig.txt | sed 's/.*DN: //')"
+            echo "certificate: $dn"
+            if [ "$SIGNING" = "release" ] && echo "$dn" | grep -q "CN=Android Debug"; then
+              echo "::error::The release key was configured but the APK is debug-signed."; exit 1
+            fi
+            certs="$certs$digest"$'\n'
+            vc="$(sed -n "s/^package: .*versionCode='\([0-9]*\)'.*/\1/p" badging.txt | head -1)"
+            minsdk="$(sed -n "s/^minSdkVersion:'\([0-9]*\)'.*/\1/p" badging.txt | head -1)"
+            tsdk="$(sed -n "s/^targetSdkVersion:'\([0-9]*\)'.*/\1/p" badging.txt | head -1)"
+            size="$(du -h "$apk" | cut -f1)"
+            echo "| $name | $abi | $size | $vc | $minsdk / $tsdk |" >> table.md
+            # Informational: Android 15+ on 16 KB page devices wants 16 KB aligned native libraries.
+            if "$BT/zipalign" -c -P 16 -v 4 "$apk" > align.txt 2>&1; then
+              echo "16 KB alignment: ok"
+            else
+              echo "16 KB alignment: not aligned or not checkable with this zipalign (informational, does not stop the build)"
+            fi
+            cp "$apk" "$name"
+            echo "::endgroup::"
+            echo "$digest" > "digest-$abi.txt"; echo "$dn" > "dn-$abi.txt"
+          done
+          if [ "$(printf '%s' "$certs" | sort -u | wc -l)" != "1" ]; then
+            echo "::error::The two APKs are signed with different certificates."; exit 1
+          fi
+          {
+            if [ "$SIGNING" = "release" ]; then
+              echo "**Signed with the release key.** Every build with this certificate installs over the previous one."
+            else
+              echo "**WARNING: signed with the DEBUG key.** The GitHub runner makes a new debug key for every build, so this APK can NOT be installed over an older Mugen AI: uninstall the old one first. To fix this for good, add the signing secrets (README, section Stable signing)."
+            fi
+            echo
+            echo "Certificate SHA-256: \`$(cat digest-arm64-v8a.txt)\`"
+            echo "Certificate: \`$(cat dn-arm64-v8a.txt)\`"
+            echo
+            cat table.md
+            echo
+            echo "- **MugenAI.apk**: for almost every phone (64-bit ARM)."
+            echo "- **MugenAI-32bit.apk**: only for old 32-bit phones."
+            echo "- If Android says the package is invalid or conflicts, an older build signed with another key is installed: uninstall it once, then install this one."
+          } > release-notes.md
+          cat release-notes.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: mugen-ai-apk
@@ -33,11 +129,55 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk MugenAI.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk MugenAI-32bit.apk
-          gh release create "mugen-${{ github.run_number }}" MugenAI.apk MugenAI-32bit.apk \
-            --title "Mugen AI build ${{ github.run_number }}" \
-            --notes "Debug-signed release APK. Install and enjoy." --latest
+          tag="mugen-${{ github.run_number }}"
+          if gh release view "$tag" > /dev/null 2>&1; then
+            # a re-run of the same run: replace the files instead of failing
+            gh release upload "$tag" MugenAI.apk MugenAI-32bit.apk --clobber
+            gh release edit "$tag" --notes-file release-notes.md --latest
+          else
+            gh release create "$tag" MugenAI.apk MugenAI-32bit.apk \
+              --target "${{ github.sha }}" \
+              --title "Mugen AI build ${{ github.run_number }}" \
+              --notes-file release-notes.md --latest
+          fi
+
+  # Proves, on every push and without any secret, that the signing setup in android/app/build.gradle.kts
+  # really signs with the key it is given: a throwaway keystore is made and the APK must carry exactly it.
+  signing-selftest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Make a throwaway keystore with the same script users run
+        run: |
+          bash tool/make-keystore.sh "$RUNNER_TEMP/k" | tee make.log
+          echo "KEYSTORE_FILE=$RUNNER_TEMP/k/mugen-release.keystore" >> "$GITHUB_ENV"
+          echo "KEYSTORE_PASSWORD=$(cat "$RUNNER_TEMP/k/PASSWORD.txt")" >> "$GITHUB_ENV"
+          echo "KEY_PASSWORD=$(cat "$RUNNER_TEMP/k/PASSWORD.txt")" >> "$GITHUB_ENV"
+          echo "KEY_ALIAS=mugen" >> "$GITHUB_ENV"
+          grep -m1 'SHA256:' make.log | sed 's/.*SHA256: *//' > expected.txt
+      - run: flutter build apk --release --split-per-abi --target-platform android-arm64
+      - name: The APK must be signed by that keystore, not the debug key
+        run: |
+          BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          apk=build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          "$BT/apksigner" verify --verbose --print-certs "$apk" | tee sig.txt
+          got="$(grep -m1 'certificate SHA-256 digest' sig.txt | sed 's/.*: //' | tr -d ':' | tr 'a-f' 'A-F')"
+          want="$(tr -d ':' < expected.txt | tr 'a-f' 'A-F')"
+          echo "expected $want"; echo "got      $got"
+          test -n "$got" && test "$got" = "$want"
+          grep -q "CN=Mugen AI" sig.txt
+          ! grep -q "CN=Android Debug" sig.txt
+          echo "signing self-test passed"
 
   # Proves the workflow Mugen pushes for *generated* apps really produces an APK.
   template-check:

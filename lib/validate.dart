@@ -516,3 +516,78 @@ String applyVersionFixes(String pubspec, Map<String, String> fixes) {
   });
   return out;
 }
+
+// ---------------------------------------------------------------- the whole check
+
+class VerifyOutcome {
+  final Map<String, String> files;
+  final List<String> notes; // what was fixed without asking the model
+  final List<Issue> errors; // problems still there at the end
+  final List<Issue> warnings;
+  final int rounds; // how many times the model was asked to repair
+  VerifyOutcome(this.files, this.notes, this.errors, this.warnings, this.rounds);
+  bool get ok => errors.isEmpty;
+}
+
+bool _sameFiles(Map<String, String> a, Map<String, String> b) {
+  if (a.length != b.length) return false;
+  for (final e in a.entries) {
+    if (b[e.key] != e.value) return false;
+  }
+  return true;
+}
+
+/// Checks the project and repairs it before it costs a GitHub build: first what has one
+/// obvious answer ([autoFix], wrong versions on pub.dev), then, for what is left, [askModel]
+/// is called with the errors and must return the whole project after the model's repair
+/// (or null to stop). At most [maxRounds] repairs are asked for; whatever is left is returned
+/// in [VerifyOutcome.errors] so the caller can still decide to build.
+Future<VerifyOutcome> verifyAndRepair({
+  required Map<String, String> files,
+  String? expectedPackage,
+  Future<Map<String, String>?> Function(List<Issue> errors)? askModel,
+  int maxRounds = 2,
+  bool checkPub = true,
+  ClientFactory? clientFactory,
+  void Function(String step)? onStep,
+}) async {
+  var cur = Map<String, String>.from(files);
+  final notes = <String>[];
+  var rounds = 0;
+  while (true) {
+    final fx = autoFix(cur, expectedPackage: expectedPackage);
+    cur = Map<String, String>.from(fx.files);
+    for (final n in fx.notes) {
+      notes.add(n);
+      onStep?.call(n);
+    }
+    final issues = validateProject(cur, expectedPackage: expectedPackage);
+    final errors = issues.where((i) => i.isError).toList();
+    final warnings = issues.where((i) => !i.isError).toList();
+
+    final pub = cur['pubspec.yaml'];
+    if (checkPub && pub != null) {
+      final fixes = <String, String>{};
+      final found = await checkPackages(parsePubspec(pub), fixes: fixes, clientFactory: clientFactory);
+      if (fixes.isNotEmpty) {
+        cur['pubspec.yaml'] = applyVersionFixes(pub, fixes);
+        final note = 'Corrected ${fixes.length} package version${fixes.length == 1 ? '' : 's'} that do not exist (${fixes.entries.map((e) => '${e.key} ${e.value}').join(', ')})';
+        notes.add(note);
+        onStep?.call(note);
+      }
+      errors.addAll(found.where((i) => !fixes.keys.any((n) => i.message.contains('of "$n"'))));
+    }
+
+    if (errors.isEmpty || askModel == null || rounds >= maxRounds) {
+      return VerifyOutcome(cur, notes, errors, warnings, rounds);
+    }
+    rounds++;
+    onStep?.call('Asking the AI to fix ${errors.length} problem${errors.length == 1 ? '' : 's'} (try $rounds of $maxRounds)');
+    final repaired = await askModel(errors);
+    if (repaired == null || _sameFiles(repaired, cur)) {
+      // The model changed nothing, so asking again would give the same answer.
+      return VerifyOutcome(cur, notes, errors, warnings, rounds);
+    }
+    cur = Map<String, String>.from(repaired);
+  }
+}

@@ -6,6 +6,7 @@ import 'research.dart';
 import 'github.dart';
 import 'parser.dart';
 import 'prompts.dart';
+import 'validate.dart';
 
 typedef Emit = void Function(Map<String, dynamic> event);
 typedef Notify = void Function(String title, String text);
@@ -18,7 +19,8 @@ class JobEngine {
   final Emit emit;
   final Notify notify;
   late final ChatStore store = ChatStore(job.docsDir);
-  JobEngine(this.job, this.emit, this.notify);
+  final ClientFactory? clientFactory; // test seam for the pub.dev check
+  JobEngine(this.job, this.emit, this.notify, {this.clientFactory});
 
   static const fixMarker = '[[fix]]';
 
@@ -145,7 +147,7 @@ class JobEngine {
     if (parsed.project != null && parsed.project!.files.isNotEmpty) {
       final pb = parsed.project!;
       final pr = chat.project ??
-          Project(name: sanitizeRepoName('${pb.name}-${chat.id.substring(0, 4)}'), title: pb.title);
+          Project(name: sanitizeRepoName('${pb.name}-${chat.id.substring(0, 4)}'), pkg: dartPackageName(pb.name), title: pb.title);
       pr.files.addAll(pb.files);
       pr.title = pb.title;
       if (pr.status == 'success' || pr.status == 'failed') pr.status = 'idle';
@@ -171,9 +173,10 @@ class JobEngine {
 
   // ---------------------------------------------------------------- github
   Future<void> _push() async {
-    final chat = store.load(job.chatId)!;
-    final pr = chat.project;
-    if (pr == null || pr.files.isEmpty) throw ApiError('No project to push yet.');
+    var chat = store.load(job.chatId)!;
+    final first = chat.project;
+    if (first == null || first.files.isEmpty) throw ApiError('No project to push yet.');
+    var pr = first;
     if (job.ghToken.isEmpty) throw ApiError('Add your GitHub token in Settings first.');
     final gh = GitHub(job.ghToken);
 
@@ -188,7 +191,33 @@ class JobEngine {
     pr.steps = [];
     pr.log = null;
     pr.apkUrl = null;
-    step('Checking GitHub token', status: 'pushing');
+    step('Checking the project before building', status: 'pushing');
+    final outcome = await verifyAndRepair(
+      files: pr.files,
+      expectedPackage: pr.pkg ?? parsePubspec(pr.files['pubspec.yaml'] ?? '').name,
+      maxRounds: job.autoFix ? 2 : 0,
+      onStep: step,
+      clientFactory: clientFactory,
+      askModel: (errors) async {
+        chat.messages.add(Msg(id: _id(), role: 'user', text: '$fixMarker${validationFixPrompt(errors)}'));
+        store.save(chat);
+        emit({'type': 'chat', 'chatId': job.chatId});
+        await _chat();
+        // _chat() works on its own copy of the chat: read the repaired project back.
+        chat = store.load(job.chatId)!;
+        pr = chat.project ?? pr;
+        return pr.files;
+      },
+    );
+    pr.files = outcome.files;
+    if (outcome.warnings.isNotEmpty) step('${outcome.warnings.length} warning${outcome.warnings.length == 1 ? '' : 's'}, not blocking: ${_brief(outcome.warnings.first)}');
+    if (outcome.ok) {
+      step('Project checks passed');
+    } else {
+      // A check can be wrong, and one build is cheaper than a stuck chat: say what is left and build anyway.
+      step('${outcome.errors.length} problem${outcome.errors.length == 1 ? '' : 's'} left, building anyway: ${_brief(outcome.errors.first)}');
+    }
+    step('Checking GitHub token');
     final owner = await gh.login();
     pr.owner = owner;
     step('Preparing repository $owner/${pr.name}');
@@ -247,6 +276,7 @@ class JobEngine {
     }
   }
 
+  static String _brief(Issue i) => '${i.file}: ${i.message}';
   static String _id() => DateTime.now().microsecondsSinceEpoch.toRadixString(36);
   static String _short(String s) => s.length > 70 ? '${s.substring(0, 70)}...' : s;
 }

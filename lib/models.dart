@@ -69,6 +69,7 @@ class GenFile {
 /// State of the GitHub project attached to a chat.
 class Project {
   String name; // repo name
+  String? pkg; // Dart package name the model chose; pubspec.yaml must keep it
   String title;
   Map<String, String> files; // path -> content
   String? owner;
@@ -82,6 +83,7 @@ class Project {
 
   Project({
     required this.name,
+    this.pkg,
     required this.title,
     Map<String, String>? files,
     this.owner,
@@ -96,13 +98,13 @@ class Project {
         steps = steps ?? [];
 
   Map<String, dynamic> toJson() => {
-        'name': name, 'title': title, 'files': files, 'owner': owner, 'runUrl': runUrl,
+        'name': name, 'pkg': pkg, 'title': title, 'files': files, 'owner': owner, 'runUrl': runUrl,
         'apkUrl': apkUrl, 'repoUrl': repoUrl, 'status': status, 'log': log,
         'attempts': attempts, 'steps': steps,
       };
 
   factory Project.fromJson(Map<String, dynamic> j) => Project(
-        name: j['name'], title: j['title'] ?? j['name'],
+        name: j['name'], pkg: j['pkg'], title: j['title'] ?? j['name'],
         files: Map<String, String>.from(j['files'] ?? {}),
         owner: j['owner'], runUrl: j['runUrl'], apkUrl: j['apkUrl'], repoUrl: j['repoUrl'],
         status: j['status'] ?? 'idle', log: j['log'], attempts: j['attempts'] ?? 0,
